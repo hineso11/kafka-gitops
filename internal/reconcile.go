@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/hineso11/go-schema-registry/pkg/api/client"
@@ -8,6 +9,7 @@ import (
 	"github.com/hineso11/go-schema-registry/pkg/api/models"
 	"io/ioutil"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -72,7 +74,13 @@ func ReconcileSchemaFile(file *SchemaFile, schemaRegistryClient *client.Confluen
 			return err
 		}
 
-		if latestSchema == subject.Schema {
+		schemasEqual, err := schemasAreEqual(latestSchema, subject.Schema, subject.SchemaType)
+
+		if err != nil {
+			return err
+		}
+
+		if schemasEqual {
 			fmt.Println("subject " + subject.Name + " is the same as before, noop necessary")
 			continue
 		}
@@ -98,6 +106,29 @@ func ReconcileSchemaFile(file *SchemaFile, schemaRegistryClient *client.Confluen
 	}
 
 	return nil
+}
+
+func schemasAreEqual(schema1 string, schema2 string, schemaType SchemaType) (bool, error) {
+
+	if schemaType == JsonType || schemaType == AvroType {
+
+		var parsedSchema1 interface{}
+		var parsedSchema2 interface{}
+
+		var err error
+		err = json.Unmarshal([]byte(schema1), &parsedSchema1)
+		if err != nil {
+			return false, err
+		}
+		err = json.Unmarshal([]byte(schema2), &parsedSchema2)
+		if err != nil {
+			return false, err
+		}
+
+		return reflect.DeepEqual(parsedSchema1, parsedSchema2), nil
+	}
+
+	return strings.TrimSpace(schema1) == strings.TrimSpace(schema2), nil
 }
 
 func getSubjects(file *SchemaFile, relativePath string) ([]Subject, error) {
