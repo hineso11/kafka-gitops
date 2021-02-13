@@ -135,9 +135,9 @@ func getSubjects(file *SchemaFile, relativePath string) ([]Subject, error) {
 
 	var subjects []Subject
 
-	for _, topic := range file.Topics {
+	for topicName, topic := range file.Topics {
 
-		keySchemaPath := filepath.Join(relativePath, topic.Key)
+		keySchemaPath := filepath.Join(relativePath, topic.Schemas.Key)
 		keyFileExtension := filepath.Ext(keySchemaPath)
 
 		var keySchemaType SchemaType
@@ -160,12 +160,12 @@ func getSubjects(file *SchemaFile, relativePath string) ([]Subject, error) {
 		}
 
 		subjects = append(subjects, Subject{
-			Name:       topic.Name + "-key",
+			Name:       topicName + "-key",
 			SchemaType: keySchemaType,
 			Schema:     strings.TrimSpace(string(keySchema)),
 		})
 
-		valueSchemaPath := filepath.Join(relativePath, topic.Value)
+		valueSchemaPath := filepath.Join(relativePath, topic.Schemas.Value)
 		valueFileExtension := filepath.Ext(valueSchemaPath)
 
 		var valueSchemaType SchemaType
@@ -188,7 +188,7 @@ func getSubjects(file *SchemaFile, relativePath string) ([]Subject, error) {
 		}
 
 		subjects = append(subjects, Subject{
-			Name:       topic.Name + "-value",
+			Name:       topicName + "-value",
 			SchemaType: valueSchemaType,
 			Schema:     string(valueSchema),
 		})

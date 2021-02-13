@@ -7,10 +7,11 @@ import (
 
 type SchemaFile struct {
 	APIVersion string `yaml:"apiVersion"`
-	Topics     []struct {
-		Name  string `yaml:"name"`
-		Key   string `yaml:"key"`
-		Value string `yaml:"value"`
+	Topics map[string]struct{
+		Schemas struct{
+			Key	string `yaml:"key"`
+			Value string `yaml:"value"`
+		} `yaml:"schemas"`
 	} `yaml:"topics"`
 }
 
