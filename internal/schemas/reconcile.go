@@ -3,7 +3,6 @@ package schemas
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/hineso11/go-schema-registry/pkg/api/client"
 	"github.com/hineso11/go-schema-registry/pkg/api/client/operations"
 	"github.com/hineso11/go-schema-registry/pkg/api/models"
@@ -28,51 +27,64 @@ type Subject struct {
 	Schema     string
 }
 
-func ReconcileSchemas(file *internal.KafkaFile, schemaRegistryClient *client.ConfluentSchemaRegistry, dryRun bool, relativePath string) error {
+func ReconcileSchemas(file *internal.KafkaFile, schemaRegistryClient *client.ConfluentSchemaRegistry, dryRun bool, relativePath string) ([]internal.ReconcileAction, error) {
 
 	desiredSubjects, err := getSubjects(file, relativePath)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	existingSubjectNames, err := getExistingSubjectNames(schemaRegistryClient)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	var reconcileActions []internal.ReconcileAction
 
 	for _, subject := range desiredSubjects {
 
 		// Check if the subject exists already or not
 		if _, exists := existingSubjectNames[subject.Name]; !exists {
 			// If the subject does not exist, then create it
-			fmt.Println("subject " + subject.Name + " does not exist, creating it...")
 
-			err = registerNewSchema(schemaRegistryClient, subject.Name, subject.Schema, subject.SchemaType)
+			if !dryRun {
+				err = registerNewSchema(schemaRegistryClient, subject.Name, subject.Schema, subject.SchemaType)
 
-			if err != nil {
-				return err
+				if err != nil {
+					return nil, err
+				}
 			}
+
+			reconcileActions = append(reconcileActions, internal.ReconcileAction{
+				Type:    internal.CreateActionType,
+				Subject: subject.Name,
+			})
 
 			continue
 		}
 
-		// Check if the schema is the same as the latest
 		latestSchema, err := getLatestSchema(schemaRegistryClient, subject.Name)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
+		// Check if the schema is the same as the latest
 		schemasEqual, err := schemasAreEqual(latestSchema, subject.Schema, subject.SchemaType)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if schemasEqual {
-			fmt.Println("subject " + subject.Name + " is the same as before, noop necessary")
+			
+			reconcileActions = append(reconcileActions, internal.ReconcileAction{
+				Type:    internal.NoopActionType,
+				Subject: subject.Name,
+			})
+			
 			continue
 		}
 
@@ -80,23 +92,29 @@ func ReconcileSchemas(file *internal.KafkaFile, schemaRegistryClient *client.Con
 		isCompatible, err := checkSchemaIsCompatible(schemaRegistryClient, subject.Name, subject.Schema, subject.SchemaType)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if !isCompatible {
-			return errors.New("subject " + subject.Name + " is not compatible with latest schema")
+			return nil, errors.New("subject " + subject.Name + " is not compatible with latest schema")
 		}
 
 		// Schema is compatible, so update it
-		fmt.Println("subject " + subject.Name + " is compatible, will update schema")
-		err = registerNewSchema(schemaRegistryClient, subject.Name, subject.Schema, subject.SchemaType)
+		if !dryRun {
+			err = registerNewSchema(schemaRegistryClient, subject.Name, subject.Schema, subject.SchemaType)
 
-		if err != nil {
-			return err
+			if err != nil {
+				return nil, err
+			}
 		}
+		
+		reconcileActions = append(reconcileActions, internal.ReconcileAction{
+			Type:    internal.CreateActionType,
+			Subject: subject.Name,
+		})
 	}
 
-	return nil
+	return reconcileActions, nil
 }
 
 func schemasAreEqual(schema1 string, schema2 string, schemaType SchemaType) (bool, error) {
