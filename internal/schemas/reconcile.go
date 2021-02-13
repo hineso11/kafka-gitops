@@ -1,4 +1,4 @@
-package internal
+package schemas
 
 import (
 	"encoding/json"
@@ -7,37 +7,28 @@ import (
 	"github.com/hineso11/go-schema-registry/pkg/api/client"
 	"github.com/hineso11/go-schema-registry/pkg/api/client/operations"
 	"github.com/hineso11/go-schema-registry/pkg/api/models"
+	"github.com/hineso11/kafka-gitops/internal"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
 	"strings"
 )
 
-type ReconcileActionType string
 type SchemaType	string
 
 const (
-	CreateAction = ReconcileActionType("CREATE")
-	UpdateAction = ReconcileActionType("UPDATE")
-	NoopAction = ReconcileActionType("NOOP")
-
 	AvroType = SchemaType("AVRO")
 	ProtobufType = SchemaType("PROTOBUF")
 	JsonType = SchemaType("JSON")
 )
 
-type ReconcileAction struct {
-	Type ReconcileActionType
-	executed bool
-}
-
 type Subject struct {
-	Name string
+	Name       string
 	SchemaType SchemaType
-	Schema string
+	Schema     string
 }
 
-func ReconcileSchemaFile(file *SchemaFile, schemaRegistryClient *client.ConfluentSchemaRegistry, dryRun bool, relativePath string) error {
+func ReconcileSchemas(file *internal.KafkaFile, schemaRegistryClient *client.ConfluentSchemaRegistry, dryRun bool, relativePath string) error {
 
 	desiredSubjects, err := getSubjects(file, relativePath)
 
@@ -45,7 +36,7 @@ func ReconcileSchemaFile(file *SchemaFile, schemaRegistryClient *client.Confluen
 		return err
 	}
 
-	existingSubjectNames, err := subjectNamesMap(schemaRegistryClient)
+	existingSubjectNames, err := getExistingSubjectNames(schemaRegistryClient)
 
 	if err != nil {
 		return err
@@ -131,7 +122,7 @@ func schemasAreEqual(schema1 string, schema2 string, schemaType SchemaType) (boo
 	return strings.TrimSpace(schema1) == strings.TrimSpace(schema2), nil
 }
 
-func getSubjects(file *SchemaFile, relativePath string) ([]Subject, error) {
+func getSubjects(file *internal.KafkaFile, relativePath string) ([]Subject, error) {
 
 	var subjects []Subject
 
@@ -197,7 +188,7 @@ func getSubjects(file *SchemaFile, relativePath string) ([]Subject, error) {
 	return subjects, nil
 }
 
-func subjectNamesMap(schemaRegistryClient *client.ConfluentSchemaRegistry) (map[string]bool, error) {
+func getExistingSubjectNames(schemaRegistryClient *client.ConfluentSchemaRegistry) (map[string]bool, error) {
 
 	res, err := schemaRegistryClient.Operations.List(operations.NewListParams())
 

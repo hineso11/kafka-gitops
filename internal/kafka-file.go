@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-type SchemaFile struct {
+type KafkaFile struct {
 	APIVersion string `yaml:"apiVersion"`
 	Topics map[string]struct{
 		Schemas struct{
@@ -15,7 +15,7 @@ type SchemaFile struct {
 	} `yaml:"topics"`
 }
 
-func ParseSchemaFile(fileName string) (*SchemaFile, error) {
+func ParseKafkaFile(fileName string) (*KafkaFile, error) {
 
 	data, err := ioutil.ReadFile(fileName)
 
@@ -23,12 +23,12 @@ func ParseSchemaFile(fileName string) (*SchemaFile, error) {
 		return nil, err
 	}
 
-	schemaFile := SchemaFile{}
-	err = yaml.Unmarshal(data, &schemaFile)
+	kafkaFile := KafkaFile{}
+	err = yaml.Unmarshal(data, &kafkaFile)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &schemaFile, nil
+	return &kafkaFile, nil
 }
