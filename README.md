@@ -93,4 +93,4 @@ Protocol Buffers, but the output might not be entirely intuitive.
 
 The tool will determine the compatibility of schemas against the latest
 version in the schema registry before it applies any changes (and also in
-dry-run mode). 
+dry-run mode). It will error and exit for any non-compatible schemas.
