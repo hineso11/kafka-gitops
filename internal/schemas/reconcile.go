@@ -109,7 +109,7 @@ func ReconcileSchemas(file *internal.KafkaFile, schemaRegistryClient *client.Con
 		}
 		
 		reconcileActions = append(reconcileActions, internal.ReconcileAction{
-			Type:    internal.CreateActionType,
+			Type:    internal.UpdateActionType,
 			Subject: subject.Name,
 		})
 	}
