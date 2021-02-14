@@ -54,6 +54,10 @@ topics:
       value: schemas/client-created/value.proto
 ```
 
+The Kafka File declares the desired state of your Kafka cluster and the tool
+will attempt to reconcile to this. It will error if any of the changes 
+aren't compatible. 
+
 ### Getting Started
 Initialise a Kafka File called `kafka.yaml` in your project according to the
 above specification.
@@ -63,6 +67,8 @@ kafka-gitops -schema-registry-url https://blah.com -schema-registry-api-key my-k
 ```
 
 Add the flag `-dry-run` to execute all the checks without applying any changes. 
+This is useful for checking whether pull requests 'build' according to the 
+state of the cluster. 
 
 The output should look something like this, depending on what state the 
 existing configuration is in.
