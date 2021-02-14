@@ -29,3 +29,23 @@ func NewSchemaRegistryClientWithBasicAuth(schemaRegistryUrl string, apiKey strin
 
 	return schemaRegistryClient, nil
 }
+
+func NewSchemaRegistryClient(schemaRegistryUrl string)	(*client.ConfluentSchemaRegistry, error)  {
+
+	parsedUrl, err := url.Parse(schemaRegistryUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	schemes := []string{parsedUrl.Scheme}
+
+	transport := httpTransport.New(parsedUrl.Host, parsedUrl.Path, schemes)
+	transport.Producers["application/vnd.schemaregistry.v1+json"] = runtime.JSONProducer()
+	transport.Consumers["application/vnd.schemaregistry.v1+json"] = runtime.JSONConsumer()
+	transport.Context = context.Background()
+
+	schemaRegistryClient := client.New(transport, strfmt.Default)
+
+	return schemaRegistryClient, nil
+}
