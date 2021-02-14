@@ -1,0 +1,11 @@
+syntax = "proto3";
+package com.example.schemas.client;
+
+message ClientCreatedMessageValue {
+  int32 item_id = 1;
+  int32 not = 3;
+
+  oneof abc {
+    int32 blah = 2;
+  }
+}

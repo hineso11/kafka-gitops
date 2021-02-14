@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "userCreatedValue",
+  "namespace": "com.example.schemas",
+  "doc": "Message value for when a user is created",
+  "fields": [
+    {
+      "name": "created_at",
+      "type": "int",
+      "doc": "Seconds since epoch the user was created"
+    }
+  ]
+}

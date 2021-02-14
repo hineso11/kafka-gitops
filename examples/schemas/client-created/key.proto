@@ -1,0 +1,7 @@
+syntax = "proto3";
+package com.example.schemas.client;
+
+message ClientCreatedMessageKey {
+  int32 order_id = 1;
+  int32 order_id2 = 2;
+}

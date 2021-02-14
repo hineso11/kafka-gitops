@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "userCreatedKey",
+  "namespace": "com.example.schemas",
+  "doc": "Message key for when a user is created",
+  "fields": [
+    {
+      "name": "user_id",
+      "type": "int",
+      "doc": "The user's ID"
+    },
+    {
+          "name": "user_id2",
+          "type": ["null", "int"],
+          "default": null,
+          "doc": "The user's ID"
+    }
+  ]
+}

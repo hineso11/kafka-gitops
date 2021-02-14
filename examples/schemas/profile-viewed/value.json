@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/schemas/profile-viewed/value.schema.json",
+  "title": "ProfileViewedValue",
+  "description": "Value for profile viewed event",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "viewedAt": {
+      "type": "number",
+      "description": "The time the event occurred in seconds since epoch"
+    }
+  }
+}
